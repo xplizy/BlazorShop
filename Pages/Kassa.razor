@@ -1,0 +1,36 @@
+﻿@page "/Kassa"
+@using BlazorShop.Interface;
+@inject NavigationManager NavigationManager
+@inject BlazorShop.Interface.ICartService CartService
+@inject DataAccessLayer.ProductAccessLayer productAccessLayer
+@inject IProducts Products
+
+
+<div class="container">
+    <h3>Kassa</h3>
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Din varukorg</h2>
+        </div>
+        <ul class="list-group list-group-flush">
+            @foreach (var cartItem in CartService.CartItems)
+            {
+                <li class="list-group-item">@cartItem.Product.Name - @cartItem.Quantity st - @cartItem.Product.Price kr/st</li>
+            }
+        </ul>
+        <div class="card-footer text-muted">
+            Totalt: @CartService.TotalPrice kr
+        </div>
+    </div>
+
+    <button class="btn btn-primary mt-3" @onclick='() => CompletePurchase()'>Betala</button>
+</div>
+
+@code {
+    private async Task CompletePurchase()
+    {
+        await CartService.CompletePurchase();
+        NavigationManager.NavigateTo("/", forceLoad: true);
+    }
+}

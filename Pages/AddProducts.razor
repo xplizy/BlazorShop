@@ -1,0 +1,111 @@
+﻿@page "/addproducts"
+@using BlazorShop.Models
+@using BlazorShop.DataAccessLayer
+@inject ProductAccessLayer productAccessLayer
+@inject NavigationManager navigationManager
+@using Microsoft.AspNetCore.Components
+@using Newtonsoft.Json
+@using System.Threading.Tasks
+
+<h3>Lägg till produkter</h3>
+
+<div class="container">
+    <form>
+        <div class="form-group">
+            <label for="productName">Produktnamn:</label>
+            <input id="productName" class="form-control" @bind="@product.Name" />
+        </div>
+
+        <div class="form-group">
+            <label for="productPrice">Produktpris:</label>
+            <input id="productPrice" class="form-control" type="number" @bind="@product.Price" />
+        </div>
+
+        <button type="button" class="btn btn-primary" @onclick="AddProduct">Lägg till produkt</button>
+    </form>
+
+    <hr />
+
+    @if (products.Count > 0)
+    {
+        <h4>Produkter</h4>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Produktnamn</th>
+                    <th>Produktpris</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in products)
+                {
+                    <tr>
+                        <td>@p.Name</td>
+                        <td>@p.Price</td>
+                        <td><button class="btn btn-link" @onclick="() => EditProduct(p)">Edit</button></td>
+
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@if (isEditing)
+{
+    <div class="container">
+        <h3>Redigera produkt</h3>
+        <form>
+            <div class="form-group">
+                <label for="editProductName">Produktnamn:</label>
+                <input id="editProductName" class="form-control" @bind="@editedProduct.Name" />
+            </div>
+
+            <div class="form-group">
+                <label for="editProductPrice">Pris:</label>
+                <input id="editProductPrice" class="form-control" type="number" @bind="@editedProduct.Price" />
+            </div>
+
+            <button type="button" class="btn btn-primary" @onclick="SaveEditedProduct">Spara ändringar</button>
+            <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Avbryt</button>
+        </form>
+    </div>
+}
+
+@code {
+    private Products product = new Products();
+    private List<Products> products = new List<Products>();
+    private bool isEditing = false;
+    private Products editedProduct = new Products();
+
+    private async Task AddProduct()
+    {
+        await productAccessLayer.AddProduct(product);
+        products.Add(product);
+        product = new Products();
+        navigationManager.NavigateTo("/addproducts", forceLoad: true);
+    }
+
+    private void EditProduct(Products product)
+    {
+        editedProduct = product;
+        isEditing = true;
+    }
+
+    private async Task SaveEditedProduct()
+    {
+        await productAccessLayer.UpdateProducts(editedProduct);
+        isEditing = false;
+    }
+
+    private void CancelEdit()
+    {
+        isEditing = false;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await productAccessLayer.GetAllProducts();
+    }
+}
